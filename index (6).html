@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OWEN AI — Rwanda CBC Lesson Plan Generator</title>
+<style>
+:root{
+  --purple:#6d4acb;
+  --blue:#2f7fcf;
+  --pink:#d95fa5;
+  --ink:#20233a;
+  --line:#5d6380;
+  --paper:#fff;
+  --soft:#f6f3ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#eef1f7;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+header{
+  background:linear-gradient(100deg,var(--purple),var(--blue));
+  color:#fff;padding:16px 18px;position:sticky;top:0;z-index:5;
+  box-shadow:0 3px 12px #0002
+}
+.brand{font-size:24px;font-weight:800;letter-spacing:.5px}
+.sub{font-size:13px;margin-top:3px}
+.langbox{position:absolute;right:18px;top:18px;display:flex;align-items:center;gap:8px}
+.langbox label{font-size:13px}
+.langbox select{padding:8px 10px;border:0;border-radius:9px;font-weight:700}
+.wrap{max-width:1200px;margin:22px auto;padding:0 14px}
+.panel{background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 18px #24315b18;margin-bottom:18px}
+h2{margin:0 0 14px;color:var(--purple)}
+.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-weight:700;font-size:13px}
+input,select,textarea{font:inherit;border:1px solid #b9bfd0;border-radius:8px;padding:9px;background:#fff}
+textarea{min-height:68px;resize:vertical}
+.buttons{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+button{border:0;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer}
+.primary{background:var(--purple);color:#fff}
+.secondary{background:#e9effb;color:#24345d}
+.pink{background:#f7e1ef;color:#8b2360}
+.danger{background:#f5e2e2;color:#8c2d2d}
+.note{font-size:12px;color:#626a7e;margin-top:8px}
+
+/* PRINTABLE RWANDA CBC STRUCTURE */
+.lesson-sheet{
+  background:#fff;
+  border:1.5px solid var(--line);
+  padding:18px;
+  max-width:1100px;
+  margin:0 auto;
+}
+.sheet-title{text-align:center;font-size:23px;font-weight:800;letter-spacing:.5px;margin-bottom:4px}
+.teacherline{display:grid;grid-template-columns:1fr 1fr;gap:20px;font-weight:700;margin-bottom:5px}
+.teacherline div{border-bottom:1px dotted #444;padding:4px 2px}
+.meta{width:100%;border-collapse:collapse;table-layout:fixed}
+.meta td,.meta th{border:1.2px solid var(--line);padding:7px 6px;vertical-align:top}
+.meta th{background:#eee9fb;font-size:12px;text-align:left}
+.meta .special{background:#e8f2fc}
+.label{font-weight:700}
+.longrow{min-height:32px}
+.objective{min-height:82px}
+.planrow{min-height:38px}
+.lesson-table-wrap{width:100%;overflow-x:auto;overflow-y:hidden;margin-top:10px;-webkit-overflow-scrolling:touch}
+.lesson-table{width:100%;min-width:980px;border-collapse:collapse;table-layout:fixed;margin-top:0}
+.lesson-table th,.lesson-table td{border:1.2px solid var(--line);padding:7px;vertical-align:top;overflow-wrap:anywhere;word-break:normal}
+.lesson-table th,.lesson-table td,.activity-cols>div{min-width:0}
+.lesson-table thead th{background:#eee9fb;text-align:center}
+.lesson-table .stage{width:12%;background:#f8f0fa;font-weight:700}
+.lesson-table .activities{width:48%}
+.lesson-table .competences{width:40%;background:#eef7ff}
+.activity-head{display:grid;grid-template-columns:1fr 1fr;font-weight:700;text-align:center}
+.activity-head div{padding:4px;border-top:1px solid var(--line)}
+.activity-cols{display:grid;grid-template-columns:1fr 1fr;min-height:115px;min-width:0}
+.activity-cols>div{overflow-wrap:anywhere}
+.activity-cols>div{padding:5px;border-right:1px solid var(--line)}
+.activity-cols>div:last-child{border-right:0}
+.step-list{margin:0;padding-left:0;list-style:none}
+.step-list li{margin:0 0 7px;overflow-wrap:anywhere}
+.self{height:45px}
+.actions{text-align:center;margin:15px 0}
+
+@media(max-width:760px){
+ .formgrid{grid-template-columns:1fr}
+ .field.full{grid-column:auto}
+ .langbox{position:static;margin-top:10px}
+ .teacherline{grid-template-columns:1fr}
+ .lesson-sheet{padding:8px;font-size:12px}
+ .lesson-table-wrap{margin-left:0;margin-right:0}
+ .lesson-table th,.lesson-table td,.meta td,.meta th{padding:5px}
+ .sheet-title{font-size:18px}
+}
+@media print{
+ body{background:#fff}
+ header,.panel,.actions{display:none!important}
+ .wrap{max-width:none;margin:0;padding:0}
+ .lesson-sheet{border:0;padding:0;max-width:none}
+ .lesson-table{min-width:0;width:100%;font-size:9px}
+ .lesson-table th,.lesson-table td{padding:4px}
+ .activity-cols{min-height:0}
+ .step-list li{margin-bottom:4px}
+ @page{size:A4 portrait;margin:8mm}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">OWEN AI</div>
+  <div class="sub">Rwanda CBC Lesson Plan Generator</div>
+  <div class="langbox">
+    <label for="language">Language</label>
+    <select id="language" onchange="changeLanguage()">
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="rw">Kinyarwanda</option>
+    </select>
+  </div>
+</header>
+
+<div class="wrap">
+<section class="panel">
+<h2 id="formTitle">Create your lesson plan</h2>
+<div class="formgrid">
+  <div class="field"><label id="schoolL">School Name</label><input id="school" value="EP Munoga"></div>
+  <div class="field"><label id="teacherL">Teacher's name</label><input id="teacher" value="Uwanyirigira Joyeuse"></div>
+
+  <div class="field"><label id="termL">Term</label><input id="term" placeholder="e.g. Term 1"></div>
+  <div class="field"><label id="dateL">Date</label><input id="date" type="date"></div>
+  <div class="field"><label id="subjectL">Subject</label><input id="subject" placeholder="e.g. English"></div>
+  <div class="field"><label id="classL">Class</label>
+    <select id="class"><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option selected>P5</option><option>P6</option></select>
+  </div>
+  <div class="field"><label id="unitNoL">Unit No.</label><input id="unitNo" placeholder="e.g. 3"></div>
+  <div class="field"><label id="lessonNoL">Lesson No.</label><input id="lessonNo" placeholder="e.g. 1 of 5"></div>
+  <div class="field"><label id="durationL">Duration</label><input id="duration" value="40 min"></div>
+  <div class="field"><label id="sizeL">Class size</label><input id="size" type="number" value="40"></div>
+
+  <div class="field full"><label id="senL">Type of Special Educational Needs to be catered for in this lesson and number of learners in each category</label>
+    <textarea id="sen" placeholder="e.g. None identified; or describe categories and numbers"></textarea></div>
+  <div class="field full"><label id="unitTitleL">Unit title</label><input id="unitTitle" placeholder="e.g. Leisure and Sports"></div>
+  <div class="field full"><label id="keyCompL">Key Unit Competence</label><textarea id="keyComp" placeholder="Enter the competence from the curriculum"></textarea></div>
+  <div class="field full"><label id="lessonTitleL">Title of the lesson</label><input id="lessonTitle" placeholder="e.g. Talking about what you like doing"></div>
+  <div class="field full"><label id="instructionL">Instructional Objective</label><textarea id="instruction" placeholder="By the end of the lesson, learners will be able to..."></textarea></div>
+  <div class="field full"><label id="placeL">Plan for this Class (location: in / outside)</label><input id="place" placeholder="e.g. Classroom"></div>
+  <div class="field full"><label id="materialsL">Learning Materials (for all learners)</label><textarea id="materials" placeholder="e.g. textbook, pictures, flashcards, chalkboard"></textarea></div>
+  <div class="field full"><label id="referencesL">References</label><textarea id="references" placeholder="e.g. REB English P5 Teacher's Guide, Learner's Book, Unit 3"></textarea></div>
+</div>
+<div class="buttons">
+  <button class="primary" onclick="generate()" id="generateBtn">✨ Generate Lesson Plan</button>
+  <button class="secondary" onclick="window.print()" id="printBtn">🖨 Print / Save PDF</button>
+  <button class="secondary" onclick="saveForm()" id="saveBtn">💾 Save</button>
+  <button class="secondary" onclick="loadForm()" id="loadBtn">↩ Load</button>
+  <button class="pink" onclick="copyPlan()" id="copyBtn">Copy Plan</button>
+  <button class="danger" onclick="resetForm()" id="resetBtn">Reset</button>
+</div>
+<div class="note" id="note">The generated plan follows the structure of the lesson-plan form shown above. Activities are kept practical and concise.</div>
+</section>
+
+<section class="panel">
+<div class="lesson-sheet" id="sheet">
+  <div class="sheet-title" id="outLessonPlan">LESSON PLAN</div>
+  <div class="teacherline">
+    <div><span id="outSchoolLabel">School Name:</span> <span id="outSchool"></span></div>
+    <div><span id="outTeacherLabel">Teacher's name:</span> <span id="outTeacher"></span></div>
+  </div>
+
+  <table class="meta">
+    <tr>
+      <th>Term</th><th>Date</th><th>Subject</th><th>Class</th><th>Unit N°</th><th>Lesson N°</th><th>Duration</th><th>Class size</th>
+    </tr>
+    <tr>
+      <td id="outTerm"></td><td id="outDate"></td><td id="outSubject"></td><td id="outClass"></td><td id="outUnitNo"></td><td id="outLessonNo"></td><td id="outDuration"></td><td id="outSize"></td>
+    </tr>
+    <tr><td colspan="4" class="special"><span class="label" id="outSenLabel">Type of Special Educational Needs to be catered for in this lesson and number of learners in each category</span></td><td colspan="4" id="outSen"></td></tr>
+    <tr><td colspan="8"><span class="label" id="outUnitTitleLabel">Unit title</span><br><span id="outUnitTitle"></span></td></tr>
+    <tr><td colspan="8"><span class="label" id="outKeyCompLabel">Key Unit Competence</span><br><span id="outKeyComp"></span></td></tr>
+    <tr><td colspan="8"><span class="label" id="outLessonTitleLabel">Title of the lesson</span><br><span id="outLessonTitle"></span></td></tr>
+    <tr><td colspan="8" class="objective"><span class="label" id="outInstructionLabel">Instructional Objective</span><br><span id="outInstruction"></span></td></tr>
+    <tr><td colspan="8"><span class="label" id="outPlaceLabel">Plan for this Class (location: in / outside)</span><br><span id="outPlace"></span></td></tr>
+    <tr><td colspan="8"><span class="label" id="outMaterialsLabel">Learning Materials (for all learners)</span><br><span id="outMaterials"></span></td></tr>
+    <tr><td colspan="8"><span class="label" id="outReferencesLabel">References</span><br><span id="outReferences"></span></td></tr>
+  </table>
+
+  <div class="lesson-table-wrap">
+  <table class="lesson-table">
+    <thead>
+      <tr>
+        <th class="stage" id="timingHead">Timing for each step</th>
+        <th class="activities" id="descriptionHead">Description of teaching and learning activity
+          <div class="activity-head"><div id="teacherHead">Teacher activities</div><div id="learnerHead">Learner activities</div></div>
+        </th>
+        <th class="competences" id="competenceHead">Generic competences<br>and<br>Cross cutting issues to be addressed<br>+<br>a short explanation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="stage"><b id="introHead">Introduction</b><br><br><span id="introTime">8 min</span></td>
+        <td>
+          <div class="activity-cols">
+            <div><ol class="step-list" id="introTeacher"></ol></div>
+            <div><ol class="step-list" id="introLearner"></ol></div>
+          </div>
+        </td>
+        <td id="introComp"></td>
+      </tr>
+      <tr>
+        <td class="stage"><b id="devHead">Development of the lesson</b><br><br><span id="devTime">25 min</span></td>
+        <td>
+          <div class="activity-cols">
+            <div><ol class="step-list" id="devTeacher"></ol></div>
+            <div><ol class="step-list" id="devLearner"></ol></div>
+          </div>
+        </td>
+        <td id="devComp"></td>
+      </tr>
+      <tr>
+        <td class="stage"><b id="conclusionHead">Conclusion</b><br><br><span id="conclusionTime">7 min</span></td>
+        <td>
+          <div class="activity-cols">
+            <div><ol class="step-list" id="conclusionTeacher"></ol></div>
+            <div><ol class="step-list" id="conclusionLearner"></ol></div>
+          </div>
+        </td>
+        <td id="conclusionComp"></td>
+      </tr>
+      <tr>
+        <td colspan="3" class="self"><b id="selfHead">Teacher self-evaluation</b> &nbsp; <span id="selfText"></span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</section>
+</div>
+
+<script>
+const T={
+en:{
+formTitle:"Create your lesson plan",school:"School Name",teacher:"Teacher's name",term:"Term",date:"Date",subject:"Subject",class:"Class",
+unitNo:"Unit No.",lessonNo:"Lesson No.",duration:"Duration",size:"Class size",
+sen:"Type of Special Educational Needs to be catered for in this lesson and number of learners in each category",
+unitTitle:"Unit title",keyComp:"Key Unit Competence",lessonTitle:"Title of the lesson",instruction:"Instructional Objective",
+place:"Plan for this Class (location: in / outside)",materials:"Learning Materials (for all learners)",references:"References",
+generate:"✨ Generate Lesson Plan",print:"🖨 Print / Save PDF",save:"💾 Save",load:"↩ Load",copy:"Copy Plan",reset:"Reset",
+note:"The generated plan follows the structure of the lesson-plan form shown above. Activities are kept practical and concise.",
+lessonPlan:"LESSON PLAN",schoolColon:"School Name:",teacherColon:"Teacher's name:",timing:"Timing for each step",
+description:"Description of teaching and learning activity",teacherAct:"Teacher activities",learnerAct:"Learner activities",
+competence:"Generic competences<br>and<br>Cross cutting issues to be addressed<br>+<br>a short explanation",
+intro:"Introduction",dev:"Development of the lesson",conclusion:"Conclusion",self:"Teacher self-evaluation",
+none:"No special educational needs identified",selfText:"Were the objectives achieved? What should be improved in the next lesson?",
+generic:"Communication and cooperation; critical thinking; learner participation. Cross-cutting issue: inclusive participation and respect for others.",
+introT:(topic)=>[`Greet learners and briefly link the lesson to their experience with ${topic}.`,`Ask 2–3 simple questions to activate interest in ${topic}.`,`State the lesson objective and explain what learners will do.`],
+introL:(topic)=>[`Respond to the greeting and share a familiar experience related to ${topic}.`,`Answer the teacher's questions and listen to classmates.`,`Listen to the objective and prepare for the activities.`],
+devT:(topic)=>[`Introduce and explain the main concept of ${topic} using clear examples, real objects, pictures or board work.`,`Demonstrate the skill or process step by step, thinking aloud so learners can follow each stage.`,`Ask guiding questions to check understanding and correct misconceptions immediately.`,`Organise learners into pairs or small groups to practise ${topic} through a practical task or guided exercise.`,`Move around the class, observe learners' work, give individual support and ask questions that encourage deeper thinking.`,`Ask groups to compare their answers or products and discuss why they are correct.`,`Invite selected learners or groups to demonstrate, explain or present their work to the class.`,`Give constructive feedback, correct common errors and allow learners to improve their work before moving to the conclusion.`],
+devL:(topic)=>[`Listen, observe and identify the important ideas about ${topic}.`,`Watch the demonstration carefully and ask questions about any step they do not understand.`,`Answer the teacher's guiding questions and give examples from their own experience.`,`Work in pairs or small groups to practise ${topic} through the given task or exercise.`,`Discuss ideas, share materials where needed and help one another complete the activity.`,`Compare answers or work with classmates and explain the reasons for their choices.`,`Present, demonstrate or explain their group work to the class.`,`Listen to feedback, correct mistakes and improve their work before the lesson moves to the conclusion.`],
+conT:(topic)=>[`Ask learners to mention the main ideas learned about ${topic}.`,`Give a short oral or written check for understanding.`,`Summarise the lesson and give a simple follow-up task.`],
+conL:(topic)=>[`State the main ideas learned about ${topic}.`,`Complete the short assessment and share answers.`,`Listen to the summary and note the follow-up task.`],
+compIntro:"Communication and cooperation — learners speak, listen and connect the topic with experience.",
+compDev:"Critical thinking, cooperation and creativity — learners practise, discuss, solve tasks and present ideas.",
+compCon:"Communication, reflection and self-confidence — learners summarise, respond to assessment and reflect.",
+}
+,
+fr:{
+formTitle:"Créer votre fiche de leçon",school:"Nom de l'école",teacher:"Nom de l'enseignant(e)",term:"Trimestre",date:"Date",subject:"Branche",class:"Classe",
+unitNo:"N° de l'unité",lessonNo:"N° de la leçon",duration:"Durée",size:"Effectif de la classe",
+sen:"Types de besoins éducatifs particuliers à prendre en compte et nombre d'apprenants dans chaque catégorie",
+unitTitle:"Titre de l'unité",keyComp:"Compétence clé de l'unité",lessonTitle:"Titre de la leçon",instruction:"Objectif pédagogique",
+place:"Plan pour cette classe (lieu : à l'intérieur / à l'extérieur)",materials:"Matériel didactique (pour tous les apprenants)",references:"Références",
+generate:"✨ Générer la fiche",print:"🖨 Imprimer / Enregistrer en PDF",save:"💾 Enregistrer",load:"↩ Charger",copy:"Copier la fiche",reset:"Réinitialiser",
+note:"La fiche générée suit la structure du modèle de fiche de leçon présenté. Les activités restent pratiques et concises.",
+lessonPlan:"FICHE DE LEÇON",schoolColon:"Nom de l'école :",teacherColon:"Nom de l'enseignant(e) :",timing:"Temps pour chaque étape",
+description:"Description des activités d'enseignement et d'apprentissage",teacherAct:"Activités de l'enseignant(e)",learnerAct:"Activités des apprenants",
+competence:"Compétences génériques<br>et<br>Thèmes transversaux à aborder<br>+<br>une brève explication",
+intro:"Introduction",dev:"Développement de la leçon",conclusion:"Conclusion",self:"Auto-évaluation de l'enseignant(e)",
+none:"Aucun besoin éducatif particulier identifié",selfText:"Les objectifs ont-ils été atteints ? Que faut-il améliorer à la prochaine leçon ?",
+generic:"Communication et coopération ; pensée critique ; participation des apprenants. Thème transversal : inclusion et respect des autres.",
+introT:(topic)=>[`Saluez les apprenants et reliez brièvement la leçon à leur expérience sur ${topic}.`,`Posez 2–3 questions simples pour susciter l'intérêt pour ${topic}.`,`Présentez l'objectif de la leçon et expliquez les activités.`],
+introL:(topic)=>[`Répondent au salut et partagent une expérience liée à ${topic}.`,`Répondent aux questions et écoutent les camarades.`,`Écoutent l'objectif et se préparent aux activités.`],
+devT:(topic)=>[`Présentez et expliquez le concept principal de ${topic} à l'aide d'exemples clairs, d'images, d'objets réels ou du tableau.`,`Démontrez la compétence ou la procédure étape par étape afin que les apprenants puissent suivre chaque étape.`,`Posez des questions-guides pour vérifier la compréhension et corrigez immédiatement les difficultés.`,`Organisez les apprenants en paires ou en petits groupes pour pratiquer ${topic} à travers une activité pratique ou un exercice guidé.`,`Circulez dans la classe, observez le travail, apportez une aide individuelle et posez des questions qui encouragent la réflexion.`,`Demandez aux groupes de comparer leurs réponses ou leurs productions et d'expliquer leurs choix.`,`Invitez quelques apprenants ou groupes à démontrer, expliquer ou présenter leur travail à la classe.`,`Donnez un feedback constructif, corrigez les erreurs fréquentes et laissez les apprenants améliorer leur travail avant la conclusion.`],
+devL:(topic)=>[`Écoutent, observent et identifient les idées importantes sur ${topic}.`,`Observent attentivement la démonstration et posent des questions sur les étapes qu'ils ne comprennent pas.`,`Répondent aux questions-guides et donnent des exemples tirés de leur expérience.`,`Travaillent en paires ou en petits groupes pour pratiquer ${topic} à travers l'activité ou l'exercice proposé.`,`Discutent, partagent le matériel si nécessaire et s'entraident pour réaliser l'activité.`,`Comparent leurs réponses ou leur travail avec leurs camarades et expliquent leurs choix.`,`Présentent, démontrent ou expliquent leur travail de groupe devant la classe.`,`Écoutent le feedback, corrigent leurs erreurs et améliorent leur travail avant la conclusion.`],
+conT:(topic)=>[`Demandez aux apprenants de citer les idées principales apprises sur ${topic}.`,`Faites une courte vérification orale ou écrite.`,`Résumez la leçon et donnez une petite activité de suivi.`],
+conL:(topic)=>[`Citent les idées principales apprises sur ${topic}.`,`Font la courte évaluation et partagent leurs réponses.`,`Écoutent le résumé et notent l'activité de suivi.`],
+compIntro:"Communication et coopération — les apprenants parlent, écoutent et relient le thème à leur expérience.",
+compDev:"Pensée critique, coopération et créativité — les apprenants pratiquent, discutent, résolvent des tâches et présentent leurs idées.",
+compCon:"Communication, réflexion et confiance en soi — les apprenants résument, répondent à l'évaluation et réfléchissent."
+},
+rw:{
+formTitle:"Kora gahunda y'isomo",school:"Izina ry'ishuri",teacher:"Izina ry'umwarimu",term:"Igihembwe",date:"Itariki",subject:"Isomo",class:"Umwaka",
+unitNo:"Nomero y'umutwe",lessonNo:"Nomero y'isomo",duration:"Igihe",size:"Umubare w'abanyeshuri",
+sen:"Ubwoko bw'ibikenewe byihariye mu myigire n'umubare w'abanyeshuri muri buri cyiciro",
+unitTitle:"Umutwe w'isomo",keyComp:"Ubushobozi bw'ingenzi bw'umutwe",lessonTitle:"Umutwe w'isomo",instruction:"Intego y'isomo",
+place:"Gahunda y'iri somo (ahantu: imbere / hanze)",materials:"Ibikoresho by'imyigishirize (ku banyeshuri bose)",references:"Aho amakuru yavuye",
+generate:"✨ Kora gahunda y'isomo",print:"🖨 Shyira ku rupapuro / Bika PDF",save:"💾 Bika",load:"↩ Fungura",copy:"Koporora gahunda",reset:"Tangira bundi bushya",
+note:"Gahunda ikurikiza imiterere y'ifishi y'isomo yerekanwe. Ibikorwa bigufi kandi bishobora gukorwa mu ishuri.",
+lessonPlan:"GAHUNDA Y'ISOMO",schoolColon:"Izina ry'ishuri:",teacherColon:"Izina ry'umwarimu:",timing:"Igihe kuri buri cyiciro",
+description:"Ibisobanuro by'ibikorwa byo kwigisha no kwiga",teacherAct:"Ibikorwa by'umwarimu",learnerAct:"Ibikorwa by'abanyeshuri",
+competence:"Ubushobozi rusange<br>n'ibibazo byambukiranya amasomo<br>+<br>ibisobanuro bigufi",
+intro:"Intangiriro",dev:"Iterambere ry'isomo",conclusion:"Umusozo",self:"Isuzuma ry'umwarimu",
+none:"Nta bikenewe byihariye byagaragajwe",selfText:"Intego z'isomo zagezweho? Ni iki cyakosorwa cyangwa cyanozwa mu isomo rikurikira?",
+generic:"Itumanaho n'ubufatanye; gutekereza neza; uruhare rw'abanyeshuri. Ikibazo cyambukiranya: kwita kuri bose no kubahana.",
+introT:(topic)=>[`Salimisha abanyeshuri kandi uhuze isomo n'ibyo basanzwe bazi kuri ${topic}.`,`Baza ibibazo 2–3 byoroshye bibakangurira gutekereza kuri ${topic}.`,`Sobanura intego y'isomo n'ibikorwa bagiye gukora.`],
+introL:(topic)=>[`Basubiza indamutso kandi bavuga ibyo basanzwe bazi kuri ${topic}.`,`Basubiza ibibazo kandi batege amatwi bagenzi babo.`,`Bumva intego y'isomo kandi bitegura ibikorwa.`],
+devT:(topic)=>[`Erekana kandi usobanure igitekerezo nyamukuru cya ${topic} ukoresheje ingero zisobanutse, amashusho, ibikoresho bifatika cyangwa ikibaho.`,`Erekana uko igikorwa cyangwa ubuhanga bikorwa intambwe ku yindi kugira ngo abanyeshuri bakurikirane neza.`,`Baza ibibazo bifasha kureba ko basobanukiwe kandi uhite ukosora aho batumva neza.`,`Tegura abanyeshuri mu babiri cyangwa mu matsinda mato bakore igikorwa ngiro cyangwa imyitozo kuri ${topic}.`,`Genda mu matsinda, urebe ibyo bakora, ubafashe ku giti cyabo kandi ubaze ibibazo bibatera gutekereza.`,`Saba amatsinda kugereranya ibisubizo cyangwa ibyo yakoze no gusobanura impamvu y'ibisubizo byabo.`,`Saba bamwe mu banyeshuri cyangwa amatsinda kwerekana, gusobanura cyangwa gutanga ibyo bakoze imbere y'abandi.`,`Tanga inama zubaka, ukosore amakosa akunze kugaragara kandi ubahe umwanya wo kunoza ibyo bakoze mbere y'umusozo.`],
+devL:(topic)=>[`Batega amatwi, bakareba kandi bakagaragaza ingingo z'ingenzi kuri ${topic}.`,`Bareba neza uko umwarimu abereka igikorwa kandi bakabaza ku ntambwe batumva.`,`Basubiza ibibazo bibafasha gutekereza kandi bagatanga ingero zishingiye ku byo babona mu buzima.`,`Bakora mu babiri cyangwa mu matsinda mato igikorwa cyangwa imyitozo yatanzwe kuri ${topic}.`,`Baganira, bagasangira ibikoresho bikenewe kandi bagafashanya kurangiza igikorwa.`,`Bagereranya ibisubizo cyangwa ibyo bakoze na bagenzi babo kandi bagasobanura impamvu y'ibisubizo.`,`Berekana, basobanura cyangwa batanga ibyo bakoze nk'itsinda imbere y'abandi.`,`Batega amatwi inama bahawe, bagakosora amakosa kandi bakanoza ibyo bakoze mbere y'umusozo.`],
+conT:(topic)=>[`Saba abanyeshuri kuvuga ingingo z'ingenzi bize kuri ${topic}.`,`Tanga isuzuma rigufi ryo kureba niba basobanukiwe.`,`Sobanura muri make isomo kandi utange igikorwa cyo gukurikizaho.`],
+conL:(topic)=>[`Bavuga ingingo z'ingenzi bize kuri ${topic}.`,`Bakora isuzuma rigufi kandi bagatanga ibisubizo.`,`Batega amatwi incamake kandi bakandika igikorwa cyo gukurikizaho.`],
+compIntro:"Itumanaho n'ubufatanye — abanyeshuri baravuga, batege amatwi kandi bahuza isomo n'ubuzima bwabo.",
+compDev:"Gutekereza neza, ubufatanye n'ubuhanzi — abanyeshuri baritoza, baganira, bakemura imirimo kandi berekana ibyo bakoze.",
+compCon:"Itumanaho, kwisuzuma no kwigirira icyizere — abanyeshuri basubiramo, basubiza isuzuma kandi batekereza ku byo bize."
+}
+};
+
+let lang="en";
+function v(id){return document.getElementById(id).value.trim()}
+function set(id,text){document.getElementById(id).innerHTML=text||""}
+function list(id,arr){document.getElementById(id).innerHTML=arr.map(x=>`<li>${x}</li>`).join("")}
+function changeLanguage(){
+  lang=document.getElementById("language").value;
+  const t=T[lang];
+  const ids={
+    formTitle:"formTitle",school:"schoolL",teacher:"teacherL",term:"termL",date:"dateL",subject:"subjectL",class:"classL",
+    unitNo:"unitNoL",lessonNo:"lessonNoL",duration:"durationL",size:"sizeL",sen:"senL",unitTitle:"unitTitleL",
+    keyComp:"keyCompL",lessonTitle:"lessonTitleL",instruction:"instructionL",place:"placeL",materials:"materialsL",references:"referencesL",
+    generate:"generateBtn",print:"printBtn",save:"saveBtn",load:"loadBtn",copy:"copyBtn",reset:"resetBtn",note:"note"
+  };
+  Object.entries(ids).forEach(([k,id])=>document.getElementById(id).innerHTML=t[k]);
+  set("outLessonPlan",t.lessonPlan); set("outSchoolLabel",t.schoolColon); set("outTeacherLabel",t.teacherColon);
+  set("timingHead",t.timing); set("descriptionHead",t.description); set("teacherHead",t.teacherAct); set("learnerHead",t.learnerAct);
+  set("competenceHead",t.competence); set("introHead",t.intro); set("devHead",t.dev); set("conclusionHead",t.conclusion); set("selfHead",t.self);
+  set("outSenLabel",t.sen); set("outUnitTitleLabel",t.unitTitle); set("outKeyCompLabel",t.keyComp); set("outLessonTitleLabel",t.lessonTitle);
+  set("outInstructionLabel",t.instruction); set("outPlaceLabel",t.place); set("outMaterialsLabel",t.materials); set("outReferencesLabel",t.references);
+  generate(false);
+}
+function generate(show=true){
+  const t=T[lang], topic=v("lessonTitle")||v("unitTitle")||"the lesson";
+  set("outSchool",v("school")); set("outTeacher",v("teacher")); set("outTerm",v("term")); set("outDate",v("date"));
+  set("outSubject",v("subject")); set("outClass",v("class")); set("outUnitNo",v("unitNo")); set("outLessonNo",v("lessonNo"));
+  set("outDuration",v("duration")); set("outSize",v("size")); set("outSen",v("sen")||t.none); set("outUnitTitle",v("unitTitle"));
+  set("outKeyComp",v("keyComp")); set("outLessonTitle",v("lessonTitle")); set("outInstruction",v("instruction"));
+  set("outPlace",v("place")); set("outMaterials",v("materials")); set("outReferences",v("references"));
+  const intro=8, conclusion=7, total=parseInt(v("duration"))||40, dev=Math.max(5,total-intro-conclusion);
+  set("introTime",intro+" min"); set("devTime",dev+" min"); set("conclusionTime",conclusion+" min");
+  list("introTeacher",t.introT(topic)); list("introLearner",t.introL(topic));
+  list("devTeacher",t.devT(topic)); list("devLearner",t.devL(topic));
+  list("conclusionTeacher",t.conT(topic)); list("conclusionLearner",t.conL(topic));
+  set("introComp",t.compIntro); set("devComp",t.compDev); set("conclusionComp",t.compCon); set("selfText",t.selfText);
+}
+function saveForm(){
+  const ids=["school","teacher","term","date","subject","class","unitNo","lessonNo","duration","size","sen","unitTitle","keyComp","lessonTitle","instruction","place","materials","references","language"];
+  const data={}; ids.forEach(id=>data[id]=document.getElementById(id).value);
+  localStorage.setItem("owenAI_lesson",JSON.stringify(data));
+  alert(lang==="fr"?"Fiche enregistrée.":lang==="rw"?"Gahunda yabitswe.":"Lesson plan form saved.");
+}
+function loadForm(){
+  const data=JSON.parse(localStorage.getItem("owenAI_lesson")||"null");
+  if(!data)return alert(lang==="fr"?"Aucune fiche enregistrée.":lang==="rw"?"Nta gahunda yabitswe.":"No saved form found.");
+  Object.entries(data).forEach(([id,val])=>{if(document.getElementById(id))document.getElementById(id).value=val});
+  lang=document.getElementById("language").value; changeLanguage(); generate();
+}
+function resetForm(){
+  document.querySelectorAll("input,textarea").forEach(el=>{if(el.id!=="school"&&el.id!=="teacher"){el.value=""}});
+  document.getElementById("duration").value="40 min"; document.getElementById("size").value="40"; document.getElementById("class").value="P5";
+  generate();
+}
+function copyPlan(){
+  const text=document.getElementById("sheet").innerText;
+  navigator.clipboard.writeText(text).then(()=>alert(lang==="fr"?"Fiche copiée.":lang==="rw"?"Gahunda yakoporowe.":"Lesson plan copied."));
+}
+document.getElementById("date").value=new Date().toISOString().slice(0,10);
+generate();
+</script>
+</body>
+</html>
